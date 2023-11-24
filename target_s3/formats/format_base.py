@@ -79,7 +79,7 @@ class FormatBase(metaclass=ABCMeta):
         # TODO: is there a better way to handle write contents ?
         with open(
             f"s3://{self.fully_qualified_key}.{self.extension}.{self.compression}",
-            "w",
+            "a",
             transport_params={"client": self.client},
         ) as f:
             f.write(contents)
