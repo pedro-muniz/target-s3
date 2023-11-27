@@ -72,6 +72,25 @@ class FormatBase(metaclass=ABCMeta):
         self.fully_qualified_key = self.create_key()
         self.logger.info(f"key: {self.fully_qualified_key}")
 
+
+    def file_exists(self, filename: str) -> bool:
+        """
+        Check if a file exists in S3.
+        Smart_open streams its data. If you open a stream, but don't actually read from it, nothing gets downloaded.
+        """
+        try:
+            with open(filename):
+                return True
+
+        # ValueError from here https://github.com/piskvorky/smart_open/blob/052ff93c110ab9e4ef94bd55667c9b6707d1ceee/smart_open/s3.py#L150            
+        except ValueError:
+             return False
+        
+        except Exception as e:
+            self.logger.error(f"Error checking if file exists.")
+            raise e
+     
+
     @abstractmethod
     def _write(self, contents: str = None) -> None:
         """Execute the write to S3. (default)"""
@@ -79,7 +98,7 @@ class FormatBase(metaclass=ABCMeta):
         # TODO: is there a better way to handle write contents ?
         with open(
             f"s3://{self.fully_qualified_key}.{self.extension}.{self.compression}",
-            "a",
+            "w",
             transport_params={"client": self.client},
         ) as f:
             f.write(contents)
@@ -120,6 +139,11 @@ class FormatBase(metaclass=ABCMeta):
             grain = DATE_GRAIN[self.config["append_date_to_filename_grain"].lower()]
             file_name += f"{self.create_file_structure(batch_start, grain)}"
 
+        i = 0
+        while (self.file_exists(f"{folder_path}{file_name}")):
+            i += 1
+            file_name += f".part_{i}"
+        
         return f"{folder_path}{file_name}"
 
     def create_folder_structure(
