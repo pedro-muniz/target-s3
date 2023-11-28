@@ -82,6 +82,7 @@ class FormatBase(metaclass=ABCMeta):
             with open(filename):
                 return True
         except:
+             self.logger.info(f"File {filename} does not exist.")
              return False
     
     @abstractmethod
