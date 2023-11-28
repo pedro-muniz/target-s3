@@ -81,16 +81,11 @@ class FormatBase(metaclass=ABCMeta):
         try:
             with open(filename):
                 return True
-
+        
         # ValueError from here https://github.com/piskvorky/smart_open/blob/052ff93c110ab9e4ef94bd55667c9b6707d1ceee/smart_open/s3.py#L150            
         except ValueError:
              return False
-        
-        except Exception as e:
-            self.logger.error(f"Error checking if file exists.")
-            raise e
-     
-
+    
     @abstractmethod
     def _write(self, contents: str = None) -> None:
         """Execute the write to S3. (default)"""
