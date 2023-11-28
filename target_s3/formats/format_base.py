@@ -133,11 +133,11 @@ class FormatBase(metaclass=ABCMeta):
         if self.config["append_date_to_filename"]:
             grain = DATE_GRAIN[self.config["append_date_to_filename_grain"].lower()]
             file_name += f"{self.create_file_structure(batch_start, grain)}"
-
+   
         i = 0
         while (self.file_exists(f"{folder_path}{file_name}")):
             i += 1
-            file_name += f".part_{i}"
+            file_name = re.sub(r'_part_\d+', '_part_' + i, file_name)
         
         return f"{folder_path}{file_name}"
 
@@ -180,7 +180,7 @@ class FormatBase(metaclass=ABCMeta):
             if grain <= DATE_GRAIN["microsecond"]
             else ""
         )
-        return ret
+        return ret + "_part_0"
 
     def create_file_structure(self, batch_start: datetime, grain: int) -> str:
         ret = ""
